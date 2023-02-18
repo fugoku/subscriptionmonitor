@@ -50,7 +50,7 @@ class User(Document):
         print(productid, orderid, "product id and orderid respectively")
         # self.orders.append(orderid)
         if productid == 101010:
-            subscribed_time = datetime.timedelta(minutes=0.3)
+            subscribed_time = datetime.timedelta(minutes=0.5)
 
         if productid == 978:
             # 1 month subscription
@@ -64,15 +64,19 @@ class User(Document):
             # 1 year subscription
             subscribed_time = datetime.timedelta(days=365)
 
-        if productid == 25:
-            # 1 year subscription
+        if productid == 13246:
+            # Lifetime subscription
             subscribed_time = datetime.timedelta(weeks=4000)
 
-        if subscribed_time:
-            subscription = self.addsubscription(subscribed_time)
-        else:
-            print("subscribed time is null")
-        return subscription
+        try:
+            if subscribed_time:
+                subscription = self.addsubscription(subscribed_time)
+            else:
+                print("subscribed time is null")
+            return subscription
+        except Exception as e:
+            print("Problem with product id please check", productid)
+            return None
 
     def __repr__(self):
         return f"User {self.username}"
