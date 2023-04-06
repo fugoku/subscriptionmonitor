@@ -26,7 +26,6 @@ from telethon.tl.functions.channels import EditBannedRequest
 from telethon.tl.types import ChatBannedRights
 
 
-
 def get_product_order(woo_data, orderid):
     logging.warning(f"Getting product order info {orderid}")
     msg = ""
@@ -80,7 +79,7 @@ def warn_user(bst_user):
     answer = description["warn_subscription"].format(
         wordpress_url=wordpress_url,
         environment=environment,
-        username=username,
+        username=username.replace("_", "\_"),
         channel_link=channel_link,
     )
     bot.send_message(userid, text=answer, parse_mode="MarkdownV2")
@@ -98,7 +97,7 @@ def kick_user(bst_user):
     answer = description["subscription_ended"].format(
         wordpress_url=wordpress_url,
         environment=environment,
-        username=username,
+        username=username.replace("_", "\_"),
         channel_link=channel_link,
     )
 
@@ -117,19 +116,21 @@ async def revoke_access(userid, channel_name, username):
         try:
             await bot_client.connect()
             channel = await bot_client.get_entity(channel_name)
-            user = await bot_client.get_entity(userid)
-        except:
             user = await bot_client.get_entity(username)
+        except:
+            user = await bot_client.get_entity(userid)
+
         msg = description["revoke_access"].format(
             wordpress_url=wordpress_url,
             environment=environment,
-            username=username,
+            username=username.replace("_", "\_"),
             channel_link=channel_link,
         )
+
         # result = await bot_client.edit_permissions(channel, user, view_messages=True)
         result = await bot_client(
             EditBannedRequest(
-                channel.id, user.id, ChatBannedRights(
+                channel, user, ChatBannedRights(
                     until_date=None, view_messages=True)
             )
         )
@@ -154,18 +155,20 @@ async def grant_access(user):
     userid = user.userid
     username = user.username
     try:
-        bot_client = TelegramClient(StringSession(sessionString), api_id, api_hash)
+        bot_client = TelegramClient(
+            StringSession(sessionString), api_id, api_hash)
         await bot_client.connect()
 
         logging.info(f"async add users to channel {username}")
         try:
             channel_name = int(os.getenv("channel_name"))
             channel = await bot_client.get_entity(channel_name)
-            print("fetching user by id")
-            user = await bot_client.get_input_entity(userid)
+
+            print("fetching user by username")
+            user = await bot_client.get_entity(username)
         except Exception as e:
-            print("fetching user by username", e)
-            user = await bot_client.get_input_entity(username)
+            print("fetching user by id")
+            user = await bot_client.get_entity(userid)
         else:
             print("Everything is ok.")
 
@@ -177,8 +180,8 @@ async def grant_access(user):
                 # result = await bot_client.edit_permissions(channel, user,until_date=None, view_messages=False)
                 result = await bot_client(
                     EditBannedRequest(
-                        channel.id,
-                        user.id | userid,
+                        channel,
+                        user,
                         ChatBannedRights(until_date=None, view_messages=False),
                     )
                 )
@@ -187,6 +190,7 @@ async def grant_access(user):
                     userid,
                     text=msg,
                     parse_mode="MarkdownV2",
+
                 )
             except Exception as e:
                 print(e)
@@ -197,8 +201,8 @@ async def grant_access(user):
                 # result = await bot_client.edit_permissions(channel, user,until_date=None, view_messages=False)
                 result = await bot_client(
                     EditBannedRequest(
-                        channel.id,
-                        user.id,
+                        channel,
+                        user,
                         ChatBannedRights(until_date=None, view_messages=False),
                     )
                 )
@@ -206,6 +210,7 @@ async def grant_access(user):
                     userid,
                     text=msg,
                     parse_mode="MarkdownV2",
+
                 )
             except Exception as e:
                 print(e)
@@ -263,7 +268,6 @@ def schedule_renew(bst_user):
         jobstore='mongo'
     )
     return True
-
 
 
 def sendError(error):

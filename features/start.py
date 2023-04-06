@@ -44,13 +44,13 @@ def start(message):
         userid = message.from_user.id
         chat_id = message.chat.id
         message_id = message.message_id
-
         if not message.from_user.username:
-            return bot.send_message(
+            return bot.send_photo(
                 userid,
-                text="You don't have a username, set a username and try again."
+                photo="https://i1.wp.com/www.swipetips.com/wp-content/uploads/2021/03/tap-your-current-telegram-username.png?resize=300%2C285&ssl=1",
+                caption="Your Telegram account doesn't have a username, set a username and try again."
             )
-
+            
         bot.send_chat_action(userid, action="typing")
 
         bst_user = db.User.objects(userid=userid).first()
@@ -94,9 +94,9 @@ def start(message):
                 bst_user.orders.append(orderid)
                 bst_user.save()
 
-            ordername = re.sub('[()+]',"",ordername)
+            ordername = re.sub(r'\W+', " ", ordername)
             answer = description["subscription_started"].format(
-                username=username,
+                username=username.replace("_", "\_"),
                 ordername=ordername,
                 subscribedto=translated_subscribedto,
                 environment=environment,
